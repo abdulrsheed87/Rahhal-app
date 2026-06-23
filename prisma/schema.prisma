@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  trips     Trip[]
+  favorites Favorite[]
+  interests UserInterest[]
+}
+
+model Interest {
+  id    String @id @default(cuid())
+  name  String @unique
+  icon  String
+  users UserInterest[]
+}
+
+model UserInterest {
+  userId     String
+  interestId String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  interest   Interest @relation(fields: [interestId], references: [id], onDelete: Cascade)
+
+  @@id([userId, interestId])
+}
+
+model Trip {
+  id          String   @id @default(cuid())
+  title       String
+  destination String
+  startDate   DateTime
+  endDate     DateTime
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Place {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  category    String
+  city        String
+  country     String
+  imageUrl    String
+  rating      Float    @default(0)
+  tags        String
+  createdAt   DateTime @default(now())
+
+  favorites Favorite[]
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId  String
+  placeId String
+  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  place   Place @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, placeId])
+}
